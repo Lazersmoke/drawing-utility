@@ -1,0 +1,214 @@
+<html>
+<head>
+<LINK REL="SHORTCUT ICON" HREF="http://lazersmoke.no-ip.org/images/icon.png"/>
+<link rel="stylesheet" type="text/css" href="../mainstyle.css">
+<!-- OLD STYLE
+<style>
+body{background-color:#d9edf8;color:#003db1;}
+</style>
+-->
+<script>
+function setupCanvas(){
+mycanvas=document.getElementById("theRoom");
+mycontext=mycanvas.getContext("2d");
+}
+
+//declares
+var mycanvas;
+var mycontext;
+var selection;
+var placing=1;
+var oldpos;
+var enableGrid=0;
+var rotation=0;
+
+ 
+function drawRotated(image, x, y, angle) { 
+var toRadians = Math.PI/180;
+
+mycontext.save(); 
+
+x=x+(image.width/2)
+y=y+(image.height/2)
+
+//move to middle of image
+mycontext.translate(x, y);
+
+//rotate around the middle, but in radians
+mycontext.rotate(angle * toRadians);
+
+//put it in the right spot
+mycontext.drawImage(image, -(image.width/2), -(image.height/2));
+
+mycontext.restore();
+}
+
+function enDisableGrid(){
+if(enableGrid==1){enableGrid=0;mycanvas.width=mycanvas.width;document.getElementById("gridOptions").innerHTML="Enable Grid";}
+else{enableGrid=1;drawGrid();document.getElementById("gridOptions").innerHTML="Disable Grid";}
+}
+
+function setPosition(e){
+//set some local vars
+var clix=e.clientX-9;
+var cliy=e.clientY-9;
+var imgw=document.getElementById("toUse").width;
+var imgh=document.getElementById("toUse").height;
+var image=document.getElementById("toUse");
+
+if(placing==1){
+
+//only place once
+placing=0;
+
+//draw our image
+drawRotated(image,clix,cliy,rotation);
+
+//remember our position
+oldpos=[clix,cliy,imgw,imgh];
+
+//end if
+}
+
+if(placing==0){
+
+//blank out old picture
+mycontext.fillStyle='#3F003F';
+mycontext.fillRect(oldpos[0],oldpos[1],oldpos[2],oldpos[3]);
+
+//but still have Grid
+drawGrid();
+
+//draw our image
+drawRotated(image,clix,cliy,rotation);
+
+//remeber our position
+oldpos=[clix,cliy,imgw,imgh];
+
+//end if and function
+}}
+
+function changePicture(){
+//some local vars
+var dropdown=document.getElementById("selector")
+var image=document.getElementById("toUse")
+
+//figure out what drop-down says
+userInput=dropdown.options[dropdown.selectedIndex].value;
+
+//setup the to-use image
+image.src='images/'+userInput+'.png';
+
+//our 1st time is placing
+placing=1;
+}
+
+function drawGrid(){
+
+//if grid is enabled
+if(enableGrid==1){
+
+//every 10px draw 10px by 10px sqaure
+for(var xcoord=0.5;xcoord<mycanvas.width+1;xcoord=xcoord+10){
+for(var ycoord=0.5;ycoord<mycanvas.height+1;ycoord=ycoord+10){
+mycontext.strokeRect(xcoord,ycoord,10,10);
+}}}}
+
+function upload(event){
+var files = event.target.files;
+var imageReader = new FileReader();
+imageReader.onload = handleReader
+imageReader.readAsDataURL(files[0])
+placing=1;
+}
+
+function handleReader(e){
+document.getElementById('toUse').src=e.target.result;
+}
+
+</script>
+</head>
+
+<body>
+<canvas width=501 height=501 id="theRoom" onclick="setPosition(event);">Your browser does not support this app!</canvas>
+<div id="User Area" class="colored" style="position:fixed;top:9px;left:510px;border-style:ridge;border-color:#dd4814;border-width:thick;">
+<!--Image Preview-->
+<p>Your Image:</p>
+<img id="toUse" src="images/cat.png"></img>
+<!--Image Preview-->
+<!--Grid Options-->
+<button onclick="enDisableGrid();" id="gridOptions">Enable Grid</button>
+<!--Rotation-->
+<span>Rotation:</span>
+<select id="rotation" onclick="rotation=document.getElementById('rotation').value">
+  <option value=0>0</option>
+  <option value=90>90</option>
+  <option value=180>180</option>
+  <option value=270>270</option>
+</select>
+<!--Rotation-->
+<!--Grid Options-->
+<br>
+<!--Dropdown Menu-->
+<select id="selector" onclick="changePicture();drawGrid();">
+  <option value="cat">Cat</option>
+  <option value="dog">Dog</option>
+</select>
+<!--Dropdown Menu-->
+<!--New and Reset and Manual-->
+<button onclick="changePicture();drawGrid();">New</button>
+<button onclick="mycanvas.width=mycanvas.width;drawGrid();">Reset</button>
+<button onclick="alert('\
+ Select a diagram from the drop\n\
+ down list and place it with the\n\
+ mouse. To place another one,\n\
+ press New, then place it. To\n\
+ change the size of the room, \n\
+ press the corresponding button.\n\
+ If you wish to change the room\n\
+ name, type the new name in the\n\
+ text box, then click Change\n\
+ To change the rotation on an\n\
+ image, select the rotation\n\
+ from the dropdown box, then\n\
+ click Activate. To enable the\n\
+ grid, click Enable Grid.\n\
+ Be warned that if you disable\n\
+ the grid, the room will be\n\
+ reset. If your browser does\n\
+ not support the app, make sure\n\
+ it has HTML5 support, and try\n\
+ again. Also install javascript.')">Manual</button>
+
+<!--New and Reset and Manual-->
+<br>
+<!--W&H-->
+<button onclick="mycanvas.width=mycanvas.width-10;drawGrid();getElementById('User Area').style.left=String(mycanvas.width+10)+'px';">Decrease Width</button>
+<button onclick="mycanvas.width=mycanvas.width+10;drawGrid();getElementById('User Area').style.left=String(mycanvas.width+10)+'px';">Increase Width</button>
+<br>
+<button onclick="mycanvas.height=mycanvas.height-10;drawGrid();">Decrease Height</button>
+<button onclick="mycanvas.height=mycanvas.height+10;drawGrid();">Increase Height</button>
+<!--W&H-->
+<br>
+<!--Room Name-->
+<span>Room Name:</span>
+<input type="text" id="roomNameInput" onkeyup="document.getElementById('roomName').innerHTML=document.getElementById('roomNameInput').value;"></input>
+<!--Room Name-->
+<br>
+<!--Upload-->
+<input type="file" id="files" name="files[]"/>
+<!--Upload-->
+</div>
+<div style="position:fixed;bottom:9px;left:9px;">
+<h1 style="color:#dd4814" id="roomName">Room Name</h1>
+</div>
+<script>
+setupCanvas();
+drawGrid();
+document.getElementById('files').addEventListener('change', upload, false);
+</script>
+<!--vvvv GitHub Banner vvvv-->
+<a href="https://github.com/techy1157"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+<!--^^^^ GitHub Banner ^^^^-->
+</body>
+</html>
